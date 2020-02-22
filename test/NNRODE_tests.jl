@@ -7,11 +7,12 @@ function f(u,p,t,W)
 end
 u0 = 0.00
 tspan = (0.0,5.0)
+dt = 1/20f0
+t = tspan[1]:dt:tspan[1]
 prob = RODEProblem(f,u0,tspan)
-
 chain = Flux.Chain(Dense(2,5,σ),Dense(5,16 ,σ ) , Dense(16,2))
 opt = Flux.ADAM(0.1, (0.9, 0.95))
-sol = solve(prob, NeuralNetDiffEq.NNRODE(chain,opt), dt=1/20f0, verbose = true,
+sol = solve(prob, NeuralNetDiffEq.NNRODE(chain,opt), dt=dt, verbose = true,
             abstol=1e-10, maxiters = 1000)
 
 # Example 2
