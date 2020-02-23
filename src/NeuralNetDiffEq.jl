@@ -2,7 +2,7 @@ module NeuralNetDiffEq
 
 using Reexport, Statistics
 @reexport using DiffEqBase
-using Flux, Zygote, DiffEqSensitivity, Distributions
+using Flux, Zygote, DiffEqSensitivity, Distributions, Random
 import Tracker
 
 abstract type NeuralNetDiffEqAlgorithm <: DiffEqBase.AbstractODEAlgorithm end
@@ -30,12 +30,13 @@ function Base.show(io::IO, A::TerminalPDEProblem)
   show(io,A.tspan)
 end
 
-struct KolmogorovPDEProblem{Phi , X , T } <: DiffEqBase.DEProblem
+struct KolmogorovPDEProblem{ Phi, X , T , D ,P} <: DiffEqBase.DEProblem
     phi::Phi
     xspan::Tuple{X,X}
     tspan::Tuple{T,T}
-    KolmogorovPDEProblem(phi , xspan , tspan) = new{typeof(phi),eltype(tspan),eltype(xspan)}(
-                                                         phi , xspan , tspan)
+    d::D
+    p::P
+    KolmogorovPDEProblem( phi , xspan , tspan , d, p=nothing) = new{typeof(phi),eltype(tspan),eltype(xspan),typeof(d),typeof(p)}(phi,xspan,tspan,d,p)
 end
 
 Base.summary(prob::KolmogorovPDEProblem) = string(nameof(typeof(prob)))
@@ -45,6 +46,7 @@ function Base.show(io::IO, A::KolmogorovPDEProblem)
   show(io,A.tspan)
   print(io,"xspan: ")
   show(io,A.xspan)
+  show(io , A.u0)
 end
 
 include("ode_solve.jl")
