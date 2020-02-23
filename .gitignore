@@ -1,6 +1,6 @@
 *.jl.cov
 *.jl.*.cov
 *.jl.mem
-*.ipnyb
-*.ipnyb_checkpoints
+*.ipynb
+*.ipynb_checkpoints
 Manifest.toml
