@@ -6,36 +6,40 @@ using Distributions
 
 #Using SDEProblem for the Algorithm.
 # For a diract delta take u0 = Normal(0 , sigma) where sigma --> 0
-u0 = Normal(1.00 , 1.00)
-xspan = (-2.0 , 6.0)
+sig = 0.5
+u0 = Normal(0.0 , 0.001)
+xspan = (-1.0 ,2.0)
 tspan = (0.0 , 1.0)
-g(u , p , t) = 2.00
-f(u , p , t) = -2.00
+g(u , p , t) = 0.5
+f(u , p , t) = -1*u
 d = 1
 sdealg = EM()
+    
 prob = SDEProblem(f , g , u0 , (0.0 , 1.0) ; xspan = xspan , d = d)
 opt = Flux.ADAM(0.01)
-m = Chain(Dense(1, 5, elu),Dense(5, 5, elu) , Dense(5 , 5 , elu) , Dense(5 , 1))
+m = Chain(Dense(1, 16, relu) , Dense(16 , 32 , relu), Dense(32 , 5 , relu) , Dense(5 , 1))
 ensemblealg = EnsembleThreads()
 sol = solve(prob, NNKolmogorov(m,opt , sdealg,ensemblealg) , verbose = true, dt = 0.01,
-            abstol=1e-10, dx = 0.0001 , trajectories = 100000 ,  maxiters = 500)
-# using Plots
-#
+            abstol=1e-10, dx = 0.0001 , trajectories = 20000 ,  maxiters = 1000 , lambda = 1e-7)
 
-# x_val = collect(xs)
-# x_val= reshape(x_val , 1 , size(x_val)[1])
-# y_val = m(x_val)
-# y_val = reshape(y_val , 800001 , 1)
-# x_val = collect(xs)
-# plot(x_val , y_val,linewidth=3,title="Solution to the linear ODE with a thick line",
-#      xaxis="Time (t)",yaxis="u(t) (in μm)",label="My Thick Line!")
-# # plot(x_val , y_val)
-# plot!(x_val , analytical(x_val),linewidth=3,title="Solution to the linear ODE with a thick line",
-#      xaxis="Time (t)",yaxis="u(t) (in μm)",label="My Thick Line!")
-#
-
+using Plots
+xs = xspan[1]:0.01:xspan[2]
+x_val = collect(xs)
+x_val= reshape(x_val , 1 , size(x_val)[1])
+y_val = m(x_val)
+y_val = reshape(y_val , length(xs) , 1)
+x_val = collect(xs)
+plot(x_val , y_val,linewidth=3,title="Solution to the linear ODE with a thick line",
+     xaxis="Time (t)",yaxis="u(t) (in μm)",label="My Thick Line!")
+# plot(x_val , y_val)
+plot!(x_val , analytical(x_val),linewidth=3,title="Solution to the linear ODE with a thick line",
+     xaxis="Time (t)",yaxis="u(t) (in μm)",label="My Thick Line!")
+using LinearAlgebra
+T = tspan[2]
+mu = 1
+sig2 = (sig^2)exp(-2*mu*T)*(exp(2*mu*T) - 1)/(2*mu)
 ## The solution is obtained taking the Fourier Transform.
-analytical(xi) = pdf.(Normal(3 , sqrt(1.0 + 5.00)) , xi)
+analytical(xi) = pdf.(Normal(0.00 , sqrt(sig2)) , xi)
 ##Validation
 xs = -5:0.00001:5
 x_1 = rand(xs , 1 , 1000)

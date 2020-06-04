@@ -16,6 +16,7 @@ function DiffEqBase.solve(
     save_everystep = false,
     dt,
     dx,
+    lambda,
     kwargs...
     )
 
@@ -63,7 +64,9 @@ function DiffEqBase.solve(
     data   = Iterators.repeated((xi , y), maxiters)
 
     #MSE Loss Function
-    loss(x , y) =Flux.mse(chain(x), y)
+    L1(x) = sum(abs.(x))
+    loss(x , y) =Flux.mse(chain(x), y) + lambda*sum(L1  , Flux.params(chain))
+
 
     cb = function ()
         l = loss(xi, y)
