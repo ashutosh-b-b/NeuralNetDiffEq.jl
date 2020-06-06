@@ -16,6 +16,7 @@ function DiffEqBase.solve(
     save_everystep = false,
     dt,
     dx,
+    check = false,
     lambda,
     kwargs...
     )
@@ -54,19 +55,41 @@ function DiffEqBase.solve(
     output_func(sol,i) = (sol[end],false)
     ensembleprob = EnsembleProblem(sdeproblem , prob_func = prob_func , output_func = output_func)
     sim = solve(ensembleprob, sdealg, ensemblealg , dt=dt, trajectories=trajectories,adaptive=false)
-    x_sde  = reshape([],d,0)
     # sol = solve(sdeproblem, sdealg ,dt=0.01 , save_everystep=false , kwargs...)
     # x_sde = sol[end]
-    for u in sim.u
-        x_sde = hcat(x_sde , u)
-    end
+    # for u in sim.u
+    #     x_sde = hcat(x_sde , u)
+    # end
+    # x_sde = fill(0.00 , 1 , length(sim.u))
+    # for i  in (1:length(sim.u))
+    #     for j in (1:length(sim.u[i]))
+    #         x_sde[j , i] = sim.u[i][j]
+    #     end
+    # end
+    x_sde = reduce(hcat , sim.u)
     y = phi(x_sde)
+    println(size(y))
+    # if check == true
+    #     yi = reshape(y , size(y)[2])
+    #     xi = reshape(xi , size(xi)[2])
+    #     _zscore = zscore(yi) .< 6
+    #     xi = xi[_zscore]
+    #     yi = yi[_zscore]
+    #     _zscore = zscore(yi) .> -6
+    #     xi = xi[_zscore]
+    #     yi = yi[_zscore]
+    #     yi = reshape(yi , d , length(yi))
+    #     xi = reshape(xi , d , length(xi))
+    # end
+    # println(size(yi))
+
+
     data   = Iterators.repeated((xi , y), maxiters)
 
     #MSE Loss Function
     L1(x) = sum(abs.(x))
     loss(x , y) =Flux.mse(chain(x), y) + lambda*sum(L1  , Flux.params(chain))
-
+    # loss(x , y) = sum( (abs(xn - yn))^1.5 for (xn , yn) in (xi, y))
 
     cb = function ()
         l = loss(xi, y)
@@ -75,5 +98,5 @@ function DiffEqBase.solve(
     end
 
     Flux.train!(loss, ps, data, opt; cb = cb)
-    xi , chain(xi)
+    xi , chain(xi), y , x_sde
  end #solve
