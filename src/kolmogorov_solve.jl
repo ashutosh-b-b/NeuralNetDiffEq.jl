@@ -46,7 +46,7 @@ function DiffEqBase.solve(
     sdealg = alg.sdealg
     ensemblealg = alg.ensemblealg
     ps     = Flux.params(chain)
-    xi     = rand(xs ,d ,trajectories)
+    xi     = rand(xs ,d ,trajectories) |> gpu
     #Finding Solution to the SDE having initial condition xi. Y = Phi(S(X , T))
     sdeproblem = SDEProblem(μ,sigma,xi,tspan,noise_rate_prototype = noise_rate_prototype)
     function prob_func(prob,i,repeat)
@@ -66,8 +66,8 @@ function DiffEqBase.solve(
     #         x_sde[j , i] = sim.u[i][j]
     #     end
     # end
-    x_sde = reduce(hcat , sim.u)
-    y = phi(x_sde)
+    x_sde = reduce(hcat , sim.u) |> gpu
+    y = phi(x_sde) |> gpu
     println(size(y))
     # if check == true
     #     yi = reshape(y , size(y)[2])
@@ -84,7 +84,7 @@ function DiffEqBase.solve(
     # println(size(yi))
 
 
-    data   = Iterators.repeated((xi , y), maxiters)
+    data   = Iterators.repeated((xi , y), maxiters) |> gpu
 
     #MSE Loss Function
     L1(x) = sum(abs.(x))
