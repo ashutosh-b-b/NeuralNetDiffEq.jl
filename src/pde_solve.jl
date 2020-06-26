@@ -77,7 +77,7 @@ function DiffEqBase.solve(
         m1 = trajectories_upper
         sdeProb = SDEProblem(μ , σ , X0 , prob.tspan)
         ensembleprob = EnsembleProblem(sdeProb)
-        sim = solve(ensembleprob, sdealg, ensemblealg, dt=dt,trajectories=10000,adaptive=false)
+        sim = solve(ensembleprob, sdealg, ensemblealg, dt=dt,trajectories=m1,adaptive=false)
         function sol_high()
             Uo = []
             for u in sim.u
@@ -103,7 +103,7 @@ function DiffEqBase.solve(
             true && println("Current loss is: $l")
             l < 1e-6 && Flux.stop()
         end
-        dataS = Iterators.repeated((), 10)
+        dataS = Iterators.repeated((), maxiters_upper)
         Flux.train!(loss_, ps, dataS, ADAM(0.01); cb = cb)
         println(u_high)
         ##Lower Limit
