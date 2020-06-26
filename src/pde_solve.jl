@@ -77,7 +77,7 @@ function DiffEqBase.solve(
         m1 = trajectories_upper
         sdeProb = SDEProblem(μ , σ , X0 , prob.tspan)
         ensembleprob = EnsembleProblem(sdeProb)
-        sim = solve(ensembleprob, EM(), EnsembleThreads(), dt=dt,trajectories=10000,adaptive=false)
+        sim = solve(ensembleprob, sdealg, ensemblealg, dt=dt,trajectories=10000,adaptive=false)
         function sol_high()
             Uo = []
             for u in sim.u
