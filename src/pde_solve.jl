@@ -75,7 +75,7 @@ function DiffEqBase.solve(
 
         ## UPPER LIMIT
         m1 = trajectories_upper
-        sdeProb = SDEProblem(μ , σ , X0 , tspan)
+        sdeProb = SDEProblem(μ , σ , X0 , prob.tspan)
         ensembleprob = EnsembleProblem(sdeProb)
         sim = solve(ensembleprob, EM(), EnsembleThreads(), dt=dt,trajectories=10000,adaptive=false)
         function sol_high()
