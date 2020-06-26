@@ -105,6 +105,7 @@ function DiffEqBase.solve(
         end
         dataS = Iterators.repeated((), maxiters_upper)
         Flux.train!(loss_, ps, dataS, ADAM(0.01); cb = cb)
+        u_high = loss_()
         println(u_high)
         ##Lower Limit
 
